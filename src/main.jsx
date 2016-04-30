@@ -120,7 +120,7 @@ module.exports = React.createClass({
                     <Input s={3} type='select' label="Environment" onChange={this.onEnvChange}>
                         {environmentNodes}
                     </Input>
-                    <Input s={7} value={_.get(homeConfig, 'environments[this.state.request.env].host')} label="Host" disabled/>
+                    <Input s={7} value={!_.isEmpty(homeConfig) && homeConfig.environments[this.state.request.env].host} label="Host" disabled/>
                     <Col s={2} className="send-button">
                         <Button type="submit" waves='light'>Send</Button>
                     </Col>

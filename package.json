@@ -1,10 +1,10 @@
 {
   "name": "tsapi-electron",
   "version": "0.1.0",
-  "main": "bootstrapper.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "package": "electron-packager ./ --platform=darwin --arch=x64 --out ./build"
+    "package": "electron-packager ./ --platform=darwin --arch=x64 --out=./sqren-build --ignore=sqren-build"
   },
   "repository": {
     "type": "git",
