@@ -27,3 +27,7 @@ html, body, #fbapi-app {
 	flex-grow: 1;
 	overflow: auto;
 }
+
+.config-error {
+	padding: 0 0 10px 10px;
+}

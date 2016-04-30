@@ -1,15 +1,22 @@
 const React = require('react');
 const tsapi = require('@tradeshift/tradeshift-api');
-const { Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
+const { Modal, Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
 const urlParser = require('url');
 const _ = require('lodash');
 const classNames = require('classnames');
 const QueryPairs = require('./queryPairs');
 const Response = require('./response');
+const shell = require('electron').shell;
+
+let homeConfig;
+try {
+  homeConfig = tsapi.getHomeConfig();
+} catch (e) {
+  homeConfig = {};
+}
 
 module.exports = React.createClass({
   getInitialState() {
-    let homeConfig = tsapi.getHomeConfig();
     return {
       settings: {
         displayQueryContainer: false
@@ -18,7 +25,7 @@ module.exports = React.createClass({
       isLoading: false,
       response: null,
       request: {
-        env: homeConfig.defaultEnvironment,
+        env: _.get(homeConfig, 'defaultEnvironment'),
         url: 'account/info',
         method: 'GET'
       }
@@ -64,13 +71,16 @@ module.exports = React.createClass({
         .finally(() => this.setState({ isLoading: false }));
   },
 
+  onClickLink() {
+    shell.openExternal('https://github.com/Tradeshift/tradeshift-node-tsapi#configuration');
+  },
+
   render() {
     let requestMethodNodes = ['GET', 'POST', 'PUT', 'DELETE'].map(method => {
       return <option key={method}>{method}</option>;
     });
 
-    let homeConfig = tsapi.getHomeConfig();
-    let environmentNodes = Object.keys(homeConfig.environments).map(env => {
+    let environmentNodes = _.map(homeConfig.environments, (value, env) => {
       return <option key={env}>{env}</option>;
     });
 
@@ -110,11 +120,19 @@ module.exports = React.createClass({
                     <Input s={3} type='select' label="Environment" onChange={this.onEnvChange}>
                         {environmentNodes}
                     </Input>
-                    <Input s={7} value={homeConfig.environments[this.state.request.env].host} label="Host" disabled/>
+                    <Input s={7} value={_.get(homeConfig, 'environments[this.state.request.env].host')} label="Host" disabled/>
                     <Col s={2} className="send-button">
                         <Button type="submit" waves='light'>Send</Button>
                     </Col>
                 </Row>
+
+                {
+                  (()=>{
+                    if (_.isEmpty(homeConfig)) {
+                      return <p className="config-error red-text">Your .tsapi configuration was not found or is invalid. <a href="#" onClick={this.onClickLink}>Read more</a></p>;
+                    }
+                  })()
+                }
             </form>
             {loadingNode}
 

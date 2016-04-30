@@ -1,10 +1,21 @@
 {
-  "name": "tsapi",
+  "name": "tsapi-electron",
   "version": "0.1.0",
   "main": "bootstrapper.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-packager ./ --platform=darwin --arch=x64 --out ./build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqren/tsapi-electron.git"
+  },
+  "author": "Søren Louv-Jansen <sorenlouv@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sqren/tsapi-electron/issues"
+  },
+  "homepage": "https://github.com/sqren/tsapi-electron",
   "dependencies": {
     "@tradeshift/tradeshift-api": "1.1.3",
     "babel": "6.5.2",
@@ -19,6 +30,8 @@
     "react-materialize": "0.14.3"
   },
   "devDependencies": {
+    "electron-packager": "^7.0.1",
+    "electron-prebuilt": "^0.37.8",
     "eslint": "^2.9.0",
     "eslint-plugin-react": "^5.0.1"
   }
