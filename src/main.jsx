@@ -19,7 +19,7 @@ module.exports = React.createClass({
       response: null,
       request: {
         env: homeConfig.defaultEnvironment,
-        url: 'account/info?test=hej',
+        url: 'account/info',
         method: 'GET'
       }
     };
@@ -77,8 +77,8 @@ module.exports = React.createClass({
     let loadingNode = this.state.isLoading ? <Col s={12}><ProgressBar /></Col> : null;
 
     return (
-        <div>
-            <form className="request-form grey lighten-5" onSubmit={this.onSubmit}>
+        <div className="main-container">
+            <form className="request-container grey lighten-5" onSubmit={this.onSubmit}>
                 <Row>
                     <Input s={3} type='select' label="Method" onChange={this.onMethodChange}>
                         {requestMethodNodes}
@@ -118,10 +118,8 @@ module.exports = React.createClass({
             </form>
             {loadingNode}
 
-            <Row>
-              <Col s={10}>
-                <Response response={this.state.response}/>
-              </Col>
+            <Row className="response-container">
+              <Response response={this.state.response}/>
             </Row>
         </div>
     );
