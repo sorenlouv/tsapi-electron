@@ -1,116 +1,129 @@
 const React = require('react');
 const tsapi = require('@tradeshift/tradeshift-api');
-const {Input, Row, Button, Col, ProgressBar} = require('react-materialize');
+const { Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
 const urlParser = require('url');
 const _ = require('lodash');
+const classNames = require('classnames');
+const QueryPairs = require('./queryPairs');
+const Response = require('./response');
 
 module.exports = React.createClass({
-    getInitialState: function() {
-        let homeConfig = tsapi.getHomeConfig();
-        return {
-            isLoading: false,
-            response: null,
-            responseError: null,
-            request: {
-                env: homeConfig.defaultEnvironment,
-                url: '',
-                method: 'GET'
-            }
-        };
-    },
-    onQueryChange: function(i, type, event) {
-        if (type === 'key') {
-            this.state.query[i][0] = event.target.value;
-        } else {
-            this.state.query[i][1] = event.target.value;
-        }
+  getInitialState() {
+    let homeConfig = tsapi.getHomeConfig();
+    return {
+      settings: {
+        displayQueryContainer: false
+      },
+      queryPairs: [],
+      isLoading: false,
+      response: null,
+      request: {
+        env: homeConfig.defaultEnvironment,
+        url: 'account/info?test=hej',
+        method: 'GET'
+      }
+    };
+  },
 
-        // _.set(this.state.query[i], type === 'key' ? 0 : 1, event.target.value)
+  onClickParamToggle() {
+    this.state.settings.displayQueryContainer = !this.state.settings.displayQueryContainer;
+    this.setState({ settings: this.state.settings });
+  },
 
-        let parsedUrl = urlParser.parse(this.state.request.url, true);
-        this.state.request.url = urlParser.format({
-            query: _.fromPairs(this.state.query),
-            pathname: parsedUrl.pathname
-        });
+  onEnvChange(event) {
+    this.state.request.env = event.target.value;
+    this.setState({ request: this.state.request });
+  },
 
-        this.setState({
-            request: this.state.request,
-            query: this.state.query
-        });
-    },
-    onEnvChange: function(event) {
-        this.state.request.env = event.target.value;
-        this.setState({ request: this.state.request});
-    },
-    onMethodChange: function(event) {
-        this.state.request.method = event.target.value;
-        this.setState({ request: this.state.request});
-    },
-    onUrlChange: function(event) {
-        let url = event.target.value;
-        this.state.request.url = url;
+  onMethodChange(event) {
+    this.state.request.method = event.target.value;
+    this.setState({ request: this.state.request });
+  },
 
-        this.setState({
-            request: this.state.request,
-            query: _.toPairs(urlParser.parse(url, true).query)
-        });
+  onUrlChange(event) {
+    let url = event.target.value;
+    this.state.request.url = url;
+    this.setState({ request: this.state.request });
+  },
 
-        setTimeout(Materialize.updateTextFields);
-    },
-    onSubmit: function(event) {
-        event.preventDefault();
-        this.setState({isLoading: true});
+  onQueryPairsChange(url) {
+    this.state.request.url = url;
+    this.setState({ request: this.state.request });
+  },
 
-        tsapi.send(this.state.request.url, this.state.request)
-            .then(res => this.setState({response: res}))
-            .catch(res => this.setState({responseError: res}))
-            .finally(() => this.setState({isLoading: false}));
-    },
-    render: function() {
-        let requestMethodNodes = ['GET', 'POST', 'PUT', 'DELETE'].map(method => {
-            return <option key={method}>{method}</option>
-        });
+  onSubmit(event) {
+    event.preventDefault();
+    this.setState({
+      isLoading: true,
+      response: null,
+    });
 
-        let homeConfig = tsapi.getHomeConfig();
-        let environmentNodes = Object.keys(homeConfig.environments).map(env => {
-            return <option key={env}>{env}</option>
-        });
+    tsapi.send(this.state.request.url, this.state.request)
+        .then(res => this.setState({ response: res }))
+        .catch(res => this.setState({ response: res }))
+        .finally(() => this.setState({ isLoading: false }));
+  },
 
-        let queryNodes = _.map(this.state.query, (query, i) => {
-            return (
-                <Row key={i}>
-                    <Input s={6} label="key" onChange={this.onQueryChange.bind(null, i, 'key')} value={query[0]}/>
-                    <Input s={6} label="value" onChange={this.onQueryChange.bind(null, i, 'value')} value={query[1]}/>
-                </Row>
-            );
-        })
+  render() {
+    let requestMethodNodes = ['GET', 'POST', 'PUT', 'DELETE'].map(method => {
+      return <option key={method}>{method}</option>;
+    });
 
-        let loadingNode = this.state.isLoading ? <Col s={12}><ProgressBar /></Col> : null;
+    let homeConfig = tsapi.getHomeConfig();
+    let environmentNodes = Object.keys(homeConfig.environments).map(env => {
+      return <option key={env}>{env}</option>;
+    });
 
-        return (
-            <div>
-                <form onSubmit={this.onSubmit}>
-                    <Row>
-                        <Input s={4} type='select' label="Environment" onChange={this.onEnvChange}>
-                            {environmentNodes}
-                        </Input>
-                    </Row>
+    let loadingNode = this.state.isLoading ? <Col s={12}><ProgressBar /></Col> : null;
 
-                    <Row>
-                        <Input s={4} type='select' label="Method" onChange={this.onMethodChange}>
-                            {requestMethodNodes}
-                        </Input>
-                        <Input s={8} label="Request URL" onChange={this.onUrlChange} value={this.state.request.url}/>
-                    </Row>
-
-                    {queryNodes}
-                    <Button type="submit" waves='light'>Send</Button>
-                </form>
-                {loadingNode}
+    return (
+        <div>
+            <form className="request-form grey lighten-5" onSubmit={this.onSubmit}>
                 <Row>
-                    {JSON.stringify(this.state.response)}
+                    <Input s={3} type='select' label="Method" onChange={this.onMethodChange}>
+                        {requestMethodNodes}
+                    </Input>
+                    <Input s={7} label="Request URL" onChange={this.onUrlChange} value={this.state.request.url}/>
+                    <Col s={2} className="query-container-toggle-button">
+                        <Button
+                            onClick={this.onClickParamToggle}
+                            className={
+                                classNames('grey', 'black-text', {
+                                    'lighten-3': this.state.settings.displayQueryContainer,
+                                    'lighten-2': !this.state.settings.displayQueryContainer
+                                })
+                            }
+                            type="button">
+                            Params
+                        </Button>
+                    </Col>
                 </Row>
-            </div>
-        );
-    }
+
+                <QueryPairs
+                  url={this.state.request.url}
+                  onChange={this.onQueryPairsChange}
+                  className={classNames('query-container',{
+                    hidden: !this.state.settings.displayQueryContainer
+                  })}/>
+
+                <Row>
+                    <Input s={3} type='select' label="Environment" onChange={this.onEnvChange}>
+                        {environmentNodes}
+                    </Input>
+                    <Input s={7} value={homeConfig.environments[this.state.request.env].host} label="Host" disabled/>
+                    <Col s={2} className="send-button">
+                        <Button type="submit" waves='light'>Send</Button>
+                    </Col>
+                </Row>
+            </form>
+            {loadingNode}
+
+            <Row>
+              <Col s={10}>
+                <Response response={this.state.response}/>
+              </Col>
+            </Row>
+        </div>
+    );
+  }
 });

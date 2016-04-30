@@ -1,0 +1,12 @@
+.query-container-toggle-button, .send-button {
+	top: 21px;
+	position: relative;
+}
+
+.hidden {
+	display: none;
+}
+
+.request-form {
+	border-bottom: 1px solid #eee;
+}
