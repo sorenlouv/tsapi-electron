@@ -3,8 +3,12 @@ const _ = require('lodash');
 const classNames = require('classnames');
 const { Tabs, Tab, Table } = require('react-materialize');
 
-function prettifyJson(obj) {
-  return JSON.stringify(obj, null, 4);
+function prettifyResponse(res) {
+  if(_.isObject(res)) {
+    return JSON.stringify(res, null, 4);
+  } else {
+    return res;
+  }
 }
 
 module.exports = React.createClass({
@@ -29,7 +33,7 @@ module.exports = React.createClass({
         <Tabs>
             <Tab title="Body">
               <pre>
-                {prettifyJson(responseBody)}
+                {prettifyResponse(responseBody)}
               </pre>
             </Tab>
             <Tab title="Headers">
