@@ -31,7 +31,13 @@ app.on('activate', function () {
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1000, height: 800});
+  mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    title: 'Tradeshift API Explorer'
+  });
+
+  mainWindow.setProgressBar(-1); // hack: force icon refresh
 
   // and load the index.html of the app.
   mainWindow.loadURL('file://' + __dirname + '/index.html');
