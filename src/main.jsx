@@ -1,6 +1,6 @@
 const React = require('react');
 const tsapi = require('@tradeshift/tradeshift-api');
-const { Modal, Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
+const { Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
 const urlParser = require('url');
 const _ = require('lodash');
 const classNames = require('classnames');
@@ -30,6 +30,29 @@ module.exports = React.createClass({
         method: 'GET'
       }
     };
+  },
+
+  componentDidMount() {
+    var that = this;
+    var items = [{url: 'account/info', method: 'delete'}, {url: 'account/lolz', method: 'post'}];
+    new window.autoComplete({
+      selector: '#myinput',
+      minChars: 2,
+      source: (term, suggest) => {
+        term = term.toLowerCase();
+        var matches = items.filter(item => item.url.includes(term));
+        suggest(matches);
+      },
+      onSelect: (e, term, item) => {
+        that.state.request.url = term;
+        that.state.request.method = item.getAttribute('data-method');
+        that.setState({ request: that.state.request });
+        $('select').material_select();
+      },
+      renderItem: (item, search) => {
+        return '<div class="autocomplete-suggestion" data-val="' + item.url + '" data-method="' + item.method.toUpperCase() + '"><strong>' + item.method.toUpperCase() + '</strong> ' + item.url + '</div>';
+      }
+    });
   },
 
   onClickParamToggle() {
@@ -62,7 +85,7 @@ module.exports = React.createClass({
     event.preventDefault();
     this.setState({
       isLoading: true,
-      response: null,
+      response: null
     });
 
     tsapi.send(this.state.request.url, this.state.request)
@@ -88,19 +111,21 @@ module.exports = React.createClass({
 
     return (
         <div className="main-container">
+          {JSON.stringify(this.state.request)}
             <form className="request-container grey lighten-5" onSubmit={this.onSubmit}>
                 <Row>
                     <Input s={3} type='select' label="Method" onChange={this.onMethodChange}>
                         {requestMethodNodes}
                     </Input>
-                    <Input s={7} label="Request URL" onChange={this.onUrlChange} value={this.state.request.url}/>
+                    <Input s={7} id="myinput" label="Request URL" onChange={this.onUrlChange}/>
+
                     <Col s={2} className="query-container-toggle-button">
                         <Button
                             onClick={this.onClickParamToggle}
                             className={
                                 classNames('grey', 'black-text', {
-                                    'lighten-3': this.state.settings.displayQueryContainer,
-                                    'lighten-2': !this.state.settings.displayQueryContainer
+                                  'lighten-3': this.state.settings.displayQueryContainer,
+                                  'lighten-2': !this.state.settings.displayQueryContainer
                                 })
                             }
                             type="button">
@@ -137,7 +162,7 @@ module.exports = React.createClass({
             {loadingNode}
 
             <Row className="response-container">
-              <Response response={this.state.response}/>
+              <Response response={this.state.response}></Response>
             </Row>
         </div>
     );

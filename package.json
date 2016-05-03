@@ -33,6 +33,8 @@
     "electron-packager": "^7.0.1",
     "electron-prebuilt": "^0.37.8",
     "eslint": "^2.9.0",
-    "eslint-plugin-react": "^5.0.1"
+    "eslint-plugin-react": "^5.0.1",
+    "jscs": "^3.0.3",
+    "jshint": "^2.9.2"
   }
 }

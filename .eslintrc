@@ -1,4 +1,4 @@
-module.exports = {
+{
     "env": {
         "browser": true,
         "commonjs": true,
@@ -9,7 +9,6 @@ module.exports = {
     "installedESLint": true,
     "parserOptions": {
         "ecmaFeatures": {
-            "experimentalObjectRestSpread": true,
             "jsx": true
         }
     },
@@ -34,4 +33,4 @@ module.exports = {
             "always"
         ]
     }
-};
+}
