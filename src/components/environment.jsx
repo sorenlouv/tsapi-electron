@@ -1,35 +1,38 @@
 const tsapi = require('@tradeshift/tradeshift-api');
 const React = require('react');
 const _ = require('lodash');
-const shell = require('electron').shell;
+const { shell } = require('electron');
 const { Input, Row, Button, Col } = require('react-materialize');
-const $ = window.$;
+const { $ } = window;
+const opn = require('opn');
 
 module.exports = React.createClass({
   getInitialState() {
-
-    let homeConfig, error;
-    try {
-      homeConfig = tsapi.getHomeConfig();
-      if (!homeConfig) {
-        error = 'NOT_FOUND';
-      }
-    } catch (e) {
-      error = 'INVALID';
-    }
-
+    let homeConfig = this.getOrCreateHomeConfig();
     return {
-      error: error,
+      isConfigValid: tsapi.isHomeConfigValid(),
       env: _.get(homeConfig, 'defaultEnvironment'),
       environments: _.get(homeConfig, 'environments') || []
     };
+  },
+
+  getOrCreateHomeConfig() {
+    try {
+      let homeConfig = tsapi.getHomeConfig();
+      if (!homeConfig) {
+        tsapi.createHomeConfig();
+      }
+      return homeConfig;
+    } catch (e) {
+      console.error(e);
+    }
   },
 
   componentDidMount() {
     this.props.setEnv(this.state.env);
     document.querySelector('.environment .select-dropdown').value = this.state.env;
 
-    if (this.state.error) {
+    if (!this.state.isConfigValid) {
       $('#homeconfig-error').openModal();
     }
   },
@@ -40,8 +43,14 @@ module.exports = React.createClass({
     this.props.setEnv(env);
   },
 
-  onClickLink() {
+  openReadme() {
     shell.openExternal('https://github.com/Tradeshift/tradeshift-node-tsapi#configuration');
+  },
+
+  openConfigFile() {
+    opn(tsapi.getHomeConfigPath()).then(() => {
+      window.location.reload();
+    });
   },
 
   render() {
@@ -57,7 +66,8 @@ module.exports = React.createClass({
           <div id="homeconfig-error" className="modal bottom-sheet">
             <div className="modal-content">
               <h4>.tsapi error</h4>
-              <p className="red-text">Your .tsapi configuration {this.state.error === 'NOT_FOUND' ? 'was not found' : 'is invalid'} . <a href="#" onClick={this.onClickLink}>Read more</a></p>
+              <p className="red-text">Your .tsapi configuration is invalid. <a href="#" onClick={this.openConfigFile}>Click here</a> to edit it.</p>
+              <p><a href="#" onClick={this.openReadme}>Read more</a></p>
             </div>
             <div className="modal-footer">
               <a href="#!" className=" modal-action modal-close waves-effect waves-green btn-flat">OK</a>
