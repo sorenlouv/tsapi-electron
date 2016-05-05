@@ -1,4 +1,4 @@
-![screen shot 2016-05-05 at 18 53 19](https://cloud.githubusercontent.com/assets/209966/15050251/daa13ee4-12f2-11e6-9401-42964d68faac.png)
+![screen shot 2016-05-05 at 18 55 54](https://cloud.githubusercontent.com/assets/209966/15050281/075a8e68-12f3-11e6-8cd6-0ec39d391ffa.png)
 
 # Setup
 
