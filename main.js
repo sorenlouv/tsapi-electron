@@ -1,7 +1,8 @@
 'use strict';
 
 const {app, BrowserWindow, Menu} = require('electron');
-let mainWindow = null;
+let primaryWindow = null;
+let secondaryWindow = null;
 
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
@@ -9,11 +10,14 @@ app.on('window-all-closed', function () {
   }
 });
 
-app.on('ready', createWindow);
+app.on('ready', function(){
+  createSecondaryWindow();
+  createPrimaryWindow();
+});
 app.once('ready', createMenu);
 app.on('activate', function () {
-  if (mainWindow === null) {
-    createWindow();
+  if (primaryWindow === null) {
+    createPrimaryWindow();
   }
 });
 
@@ -27,27 +31,40 @@ function createMenu() {
   Menu.setApplicationMenu(menu);
 }
 
-function createWindow() {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
+function createPrimaryWindow() {
+  primaryWindow = new BrowserWindow({
     width: 1000,
     height: 800,
     title: 'Tradeshift API Explorer'
   });
 
-  mainWindow.setProgressBar(-1); // hack: force icon refresh
+  primaryWindow.hide();
+  primaryWindow.setProgressBar(-1); // hack: force icon refresh
+  primaryWindow.loadURL('file://' + __dirname + '/src/primaryWindow.html');
 
-  // and load the index.html of the app.
-  mainWindow.loadURL('file://' + __dirname + '/index.html');
+  primaryWindow.webContents.on('did-finish-load', () => {
+    primaryWindow.show();
+    secondaryWindow.close();
+  });
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  // primaryWindow.webContents.openDevTools();
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null;
+  primaryWindow.on('closed', function () {
+    primaryWindow = null;
+  });
+}
+
+function createSecondaryWindow() {
+  secondaryWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    title: 'Loading Tradeshift API Explorer...'
+  });
+
+  secondaryWindow.loadURL('file://' + __dirname + '/src/secondaryWindow.html');
+
+  secondaryWindow.on('closed', function () {
+    secondaryWindow = null;
   });
 }
