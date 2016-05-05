@@ -3,11 +3,11 @@ const _ = require('lodash');
 const classNames = require('classnames');
 const { Tabs, Tab, Table } = require('react-materialize');
 
-function prettifyResponse(res) {
-  if(_.isObject(res)) {
-    return JSON.stringify(res, null, 4);
+function prettifyResponseBody(body) {
+  if(_.isObject(body)) {
+    return JSON.stringify(body, null, 4);
   } else {
-    return res;
+    return body;
   }
 }
 
@@ -25,16 +25,22 @@ module.exports = React.createClass({
   },
 
   render() {
-    let responseBody = _.has(this.props.response, 'body') ? _.get(this.props.response, 'body') : this.props.response;
     let responseHeaders = _.get(this.props.response, 'headers');
+    let responseBody = _.get(this.props.response, 'body');
 
     return (
       <div className={(_.isEmpty(this.props.response) ? 'hidden' : '')}>
         <Tabs>
             <Tab title="Body">
-              <pre>
-                {prettifyResponse(responseBody)}
-              </pre>
+              {
+                (() => {
+                  if (responseBody) {
+                    return <pre>{prettifyResponseBody(responseBody)}</pre>
+                  } else {
+                    return <em>Empty response</em>
+                  }
+                })()
+              }
             </Tab>
             <Tab title="Headers">
               {

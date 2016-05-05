@@ -1,19 +1,13 @@
 const React = require('react');
 const tsapi = require('@tradeshift/tradeshift-api');
-const { Input, Row, Button, Col, ProgressBar, Tabs, Tab, Table } = require('react-materialize');
-const urlParser = require('url');
+const { Input, Row, Button, Col, ProgressBar } = require('react-materialize');
 const _ = require('lodash');
 const classNames = require('classnames');
-const QueryPairs = require('./queryPairs');
-const Response = require('./response');
-const shell = require('electron').shell;
-
-let homeConfig;
-try {
-  homeConfig = tsapi.getHomeConfig();
-} catch (e) {
-  homeConfig = {};
-}
+const QueryPairs = require('./components/queryPairs');
+const Response = require('./components/response');
+const Environment = require('./components/environment');
+const RequestMethod = require('./components/requestMethod');
+const apiEndpoints = require('./apiEndpoints.json');
 
 module.exports = React.createClass({
   getInitialState() {
@@ -24,8 +18,9 @@ module.exports = React.createClass({
       queryPairs: [],
       isLoading: false,
       response: null,
+      env: null,
       request: {
-        env: _.get(homeConfig, 'defaultEnvironment'),
+        body: null,
         url: 'account/info',
         method: 'GET'
       }
@@ -34,21 +29,28 @@ module.exports = React.createClass({
 
   componentDidMount() {
     var that = this;
-    var items = [{url: 'account/info', method: 'delete'}, {url: 'account/lolz', method: 'post'}];
     new window.autoComplete({
-      selector: '#myinput',
+      selector: '#request-url',
       minChars: 2,
       source: (term, suggest) => {
         term = term.toLowerCase();
-        var matches = items.filter(item => item.url.includes(term));
+        var matches = _(apiEndpoints)
+          .filter(item => item.url.includes(term))
+          .sortBy(function (match) {
+            return match.url.length;
+          })
+          .value();
+
         suggest(matches);
       },
-      onSelect: (e, term, item) => {
+
+      onSelect: (event, term, item) => {
         that.state.request.url = term;
         that.state.request.method = item.getAttribute('data-method');
         that.setState({ request: that.state.request });
-        $('select').material_select();
+        event.preventDefault();
       },
+
       renderItem: (item, search) => {
         return '<div class="autocomplete-suggestion" data-val="' + item.url + '" data-method="' + item.method.toUpperCase() + '"><strong>' + item.method.toUpperCase() + '</strong> ' + item.url + '</div>';
       }
@@ -60,9 +62,13 @@ module.exports = React.createClass({
     this.setState({ settings: this.state.settings });
   },
 
-  onEnvChange(event) {
-    this.state.request.env = event.target.value;
-    this.setState({ request: this.state.request });
+  onClickBodyToggle() {
+    this.state.settings.displayBodyContainer = !this.state.settings.displayBodyContainer;
+    this.setState({ settings: this.state.settings });
+  },
+
+  setEnvironment(env) {
+    this.setState({ env: env });
   },
 
   onMethodChange(event) {
@@ -81,6 +87,11 @@ module.exports = React.createClass({
     this.setState({ request: this.state.request });
   },
 
+  onRequestBodyChange(event) {
+    this.state.request.body = event.target.value;
+    this.setState({ request: this.state.request });
+  },
+
   onSubmit(event) {
     event.preventDefault();
     this.setState({
@@ -88,48 +99,57 @@ module.exports = React.createClass({
       response: null
     });
 
-    tsapi.send(this.state.request.url, this.state.request)
-        .then(res => this.setState({ response: res }))
-        .catch(res => this.setState({ response: res }))
+    var tsOptions = {
+      env: this.state.env
+    };
+
+    try {
+      this.state.request.body = JSON.parse(this.state.request.body);
+    } catch (e) {}
+
+    tsapi.send(this.state.request.url, this.state.request, tsOptions)
+        .then(res => this.setState({ response: res, responseError: null }))
+        .catch(error => {
+          if (!error.response) {
+            window.$('#request-error').openModal();
+          }
+
+          this.setState({ response: null, responseError: error });
+        })
         .finally(() => this.setState({ isLoading: false }));
   },
 
-  onClickLink() {
-    shell.openExternal('https://github.com/Tradeshift/tradeshift-node-tsapi#configuration');
-  },
-
   render() {
-    let requestMethodNodes = ['GET', 'POST', 'PUT', 'DELETE'].map(method => {
-      return <option key={method}>{method}</option>;
-    });
-
-    let environmentNodes = _.map(homeConfig.environments, (value, env) => {
-      return <option key={env}>{env}</option>;
-    });
-
-    let loadingNode = this.state.isLoading ? <Col s={12}><ProgressBar /></Col> : null;
+    function getButtonStyles(isClicked) {
+      return classNames('grey', 'lighten-3', 'black-text', {
+        'z-depth-0': isClicked,
+        'z-depth-2': !isClicked,
+        pressed: isClicked
+      });
+    }
 
     return (
         <div className="main-container">
-          {JSON.stringify(this.state.request)}
             <form className="request-container grey lighten-5" onSubmit={this.onSubmit}>
                 <Row>
-                    <Input s={3} type='select' label="Method" onChange={this.onMethodChange}>
-                        {requestMethodNodes}
-                    </Input>
-                    <Input s={7} id="myinput" label="Request URL" onChange={this.onUrlChange}/>
+                    <RequestMethod method={this.state.request.method} onChange={this.onMethodChange}></RequestMethod>
+                    <Input s={5} id="request-url" label="Request URL" onChange={this.onUrlChange} value={this.state.request.url}/>
 
                     <Col s={2} className="query-container-toggle-button">
                         <Button
                             onClick={this.onClickParamToggle}
-                            className={
-                                classNames('grey', 'black-text', {
-                                  'lighten-3': this.state.settings.displayQueryContainer,
-                                  'lighten-2': !this.state.settings.displayQueryContainer
-                                })
-                            }
+                            className={getButtonStyles(this.state.settings.displayQueryContainer)}
                             type="button">
                             Params
+                        </Button>
+                    </Col>
+
+                    <Col s={1} className="body-container-toggle-button">
+                        <Button
+                            onClick={this.onClickBodyToggle}
+                            className={getButtonStyles(this.state.settings.displayBodyContainer)}
+                            type="button">
+                            Body
                         </Button>
                     </Col>
                 </Row>
@@ -137,33 +157,41 @@ module.exports = React.createClass({
                 <QueryPairs
                   url={this.state.request.url}
                   onChange={this.onQueryPairsChange}
-                  className={classNames('query-container',{
+                  className={classNames('query-container', {
                     hidden: !this.state.settings.displayQueryContainer
                   })}/>
 
-                <Row>
-                    <Input s={3} type='select' label="Environment" onChange={this.onEnvChange}>
-                        {environmentNodes}
-                    </Input>
-                    <Input s={7} value={!_.isEmpty(homeConfig) && homeConfig.environments[this.state.request.env].host} label="Host" disabled/>
-                    <Col s={2} className="send-button">
-                        <Button type="submit" waves='light'>Send</Button>
-                    </Col>
+                <Row
+                  onChange={this.onRequestBodyChange}
+                  className={classNames('request-body-container', {
+                    hidden: !this.state.settings.displayBodyContainer
+                  })}>
+                  <Input s={10} type="textarea" label="Request body"/>
                 </Row>
 
-                {
-                  (()=>{
-                    if (_.isEmpty(homeConfig)) {
-                      return <p className="config-error red-text">Your .tsapi configuration was not found or is invalid. <a href="#" onClick={this.onClickLink}>Read more</a></p>;
-                    }
-                  })()
-                }
+                <Row>
+                  <Environment setEnv={this.setEnvironment}></Environment>
+                  <Col s={2} className="send-button">
+                      <Button type="submit" waves='light'>Send</Button>
+                  </Col>
+                </Row>
             </form>
-            {loadingNode}
+
+            {this.state.isLoading ? <ProgressBar/> : null}
 
             <Row className="response-container">
-              <Response response={this.state.response}></Response>
+              <Response response={this.state.response || _.get(this.state, 'responseError.response')}></Response>
             </Row>
+
+            <div id="request-error" className="modal bottom-sheet">
+              <div className="modal-content">
+                <h4>Request error</h4>
+                <p>{_.get(this.state, 'responseError.message')}</p>
+              </div>
+              <div className="modal-footer">
+                <a href="#!" className=" modal-action modal-close waves-effect waves-green btn-flat">OK</a>
+              </div>
+            </div>
         </div>
     );
   }

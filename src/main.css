@@ -3,13 +3,26 @@ html, body, #fbapi-app {
 	margin: 0;
 }
 
-.query-container-toggle-button, .send-button {
+.query-container-toggle-button, .send-button, .body-container-toggle-button {
 	top: 21px;
 	position: relative;
 }
 
+.body-container-toggle-button button {
+	margin-left: 22px;
+}
+
+.request-body-container textarea {
+	max-height: 300px;
+	overflow: scroll;
+}
+
 .hidden {
 	display: none;
+}
+
+button.pressed {
+	font-weight: 500;
 }
 
 .main-container {
@@ -26,8 +39,4 @@ html, body, #fbapi-app {
 .response-container {
 	flex-grow: 1;
 	overflow: auto;
-}
-
-.config-error {
-	padding: 0 0 10px 10px;
 }

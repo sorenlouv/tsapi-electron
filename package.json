@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/sqren/tsapi-electron",
   "dependencies": {
-    "@tradeshift/tradeshift-api": "1.2.2",
+    "@tradeshift/tradeshift-api": "1.2.3",
     "babel": "6.5.2",
     "babel-preset-es2015": "6.6.0",
     "babel-preset-react": "6.5.0",
@@ -31,10 +31,6 @@
   },
   "devDependencies": {
     "electron-packager": "^7.0.1",
-    "electron-prebuilt": "^0.37.8",
-    "eslint": "^2.9.0",
-    "eslint-plugin-react": "^5.0.1",
-    "jscs": "^3.0.3",
-    "jshint": "^2.9.2"
+    "electron-prebuilt": "^0.37.8"
   }
 }
