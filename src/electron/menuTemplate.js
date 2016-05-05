@@ -158,7 +158,7 @@ if (process.platform === 'darwin') {
         label: 'Quit',
         accelerator: 'Command+Q',
         click: () => { app.quit(); }
-      },
+      }
     ]
   });
   // Window menu.
