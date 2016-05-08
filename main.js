@@ -1,33 +1,31 @@
 'use strict';
 
 const {app, BrowserWindow, Menu} = require('electron');
-let primaryWindow = null;
-let secondaryWindow = null;
+let primaryWindow, secondaryWindow;
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-app.on('ready', function(){
+app.on('ready', () => {
   createSecondaryWindow();
   createPrimaryWindow();
+  createMenuIfNotExist();
 });
-app.once('ready', createMenu);
-app.on('activate', function () {
+app.on('activate', () => {
   if (primaryWindow === null) {
     createPrimaryWindow();
   }
 });
 
-function createMenu() {
+function createMenuIfNotExist() {
   if (Menu.getApplicationMenu()) {
     return;
   }
 
-  var menuTemplate = require('./src/electron/menuTemplate.js');
-  var menu = Menu.buildFromTemplate(menuTemplate);
+  let menuTemplate = require('./src/electron/menuTemplate.js');
+  let menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 }
 
@@ -44,15 +42,18 @@ function createPrimaryWindow() {
 
   primaryWindow.webContents.on('did-finish-load', () => {
     primaryWindow.show();
-    secondaryWindow.close();
+
+    if(secondaryWindow){
+      let secondaryWindowBounds = secondaryWindow.getBounds();
+      primaryWindow.setBounds(secondaryWindowBounds);
+      secondaryWindow.close();
+    }
   });
 
   // Open the DevTools.
   // primaryWindow.webContents.openDevTools();
 
-  primaryWindow.on('closed', function () {
-    primaryWindow = null;
-  });
+  primaryWindow.on('closed', () => primaryWindow = null);
 }
 
 function createSecondaryWindow() {
@@ -64,7 +65,5 @@ function createSecondaryWindow() {
 
   secondaryWindow.loadURL('file://' + __dirname + '/src/secondaryWindow.html');
 
-  secondaryWindow.on('closed', function () {
-    secondaryWindow = null;
-  });
+  secondaryWindow.on('closed', () => secondaryWindow = null);
 }

@@ -1,10 +1,12 @@
 const tsapi = require('@tradeshift/tradeshift-api');
 const React = require('react');
+const path = require('path');
 const _ = require('lodash');
 const { shell } = require('electron');
+const watch = require('watch');
+const opn = require('opn');
 const { Input, Row, Button, Col } = require('react-materialize');
 const { $ } = window;
-const opn = require('opn');
 
 module.exports = React.createClass({
   getInitialState() {
@@ -14,6 +16,33 @@ module.exports = React.createClass({
       env: _.get(homeConfig, 'defaultEnvironment'),
       environments: _.get(homeConfig, 'environments') || []
     };
+  },
+
+  componentDidMount() {
+    this.props.setEnv(this.state.env);
+    this.updateDropdownState();
+
+    if (!this.state.isConfigValid) {
+      $('#homeconfig-error').openModal();
+    }
+
+    this.watchHomeConfigChanges(() => {
+      try {
+        let homeConfig = tsapi.getHomeConfig();
+        window.location.reload();
+      } catch (e) {
+        console.error(e);
+        $('#homeconfig-error').openModal();
+      }
+    });
+  },
+
+  componentDidUpdate() {
+    this.updateDropdownState();
+  },
+
+  updateDropdownState() {
+    document.querySelector('.environment .select-dropdown').value = this.state.env;
   },
 
   getOrCreateHomeConfig() {
@@ -28,13 +57,19 @@ module.exports = React.createClass({
     }
   },
 
-  componentDidMount() {
-    this.props.setEnv(this.state.env);
-    document.querySelector('.environment .select-dropdown').value = this.state.env;
-
-    if (!this.state.isConfigValid) {
-      $('#homeconfig-error').openModal();
-    }
+  watchHomeConfigChanges(cb) {
+    let homeConfigPath = tsapi.getHomeConfigPath();
+    watch.watchTree(path.dirname(homeConfigPath), {
+      filter: file => file === homeConfigPath
+    }, (f, curr, prev) => {
+      let isInitialized = typeof f == 'object' && prev === null && curr === null;
+      if(!isInitialized) {
+        if(cb) {
+          cb();
+        }
+        console.log('changed!');
+      }
+    });
   },
 
   onChange(event) {
@@ -48,18 +83,14 @@ module.exports = React.createClass({
   },
 
   openConfigFile() {
-    opn(tsapi.getHomeConfigPath()).then(() => {
-      window.location.reload();
-    });
+    opn(tsapi.getHomeConfigPath());
   },
 
   render() {
-    let environmentNodes = _.map(this.state.environments, (value, env) => <option key={env}>{env}</option>);
-
     return (
       <div>
           <Input s={3} type="select" className="environment" label="Environment" onChange={this.onChange}>
-              {environmentNodes}
+              {_.map(this.state.environments, (value, env) => <option key={env}>{env}</option>)}
           </Input>
           <Input s={7} value={_.get(this.state.environments[this.state.env], 'host')} label="Host" disabled/>
 

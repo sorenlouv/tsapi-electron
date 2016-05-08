@@ -28,7 +28,8 @@
     "opn": "4.0.1",
     "react": "15.0.2",
     "react-dom": "15.0.2",
-    "react-materialize": "0.14.3"
+    "react-materialize": "0.14.3",
+    "watch": "0.18.0"
   },
   "devDependencies": {
     "electron-packager": "^7.0.1",

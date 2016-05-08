@@ -1,13 +1,13 @@
 const React = require('react');
 const tsapi = require('@tradeshift/tradeshift-api');
-const { Input, Row, Button, Col, ProgressBar } = require('react-materialize');
 const _ = require('lodash');
 const classNames = require('classnames');
+const apiEndpoints = require('./apiEndpoints.json');
+const { Input, Row, Button, Col, ProgressBar } = require('react-materialize');
 const QueryPairs = require('./components/queryPairs');
 const Response = require('./components/response');
 const Environment = require('./components/environment');
 const RequestMethod = require('./components/requestMethod');
-const apiEndpoints = require('./apiEndpoints.json');
 
 module.exports = React.createClass({
   getInitialState() {
@@ -51,7 +51,7 @@ module.exports = React.createClass({
         event.preventDefault();
       },
 
-      renderItem: (item, search) => {
+      renderItem: (item) => {
         return '<div class="autocomplete-suggestion" data-val="' + item.url + '" data-method="' + item.method.toUpperCase() + '"><strong>' + item.method.toUpperCase() + '</strong> ' + item.url + '</div>';
       }
     });
