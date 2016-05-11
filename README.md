@@ -2,11 +2,6 @@
 
 # Setup
 
-Install Electron
-```
-npm install electron -g
-```
-
 Install dependencies
 ```
 npm install
@@ -15,4 +10,9 @@ npm install
 Start electron
 ```
 npm start
+```
+
+Create binary package
+```
+npm run package
 ```
