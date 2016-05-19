@@ -40,3 +40,17 @@ button.pressed {
 	flex-grow: 1;
 	overflow: auto;
 }
+
+.status-code {
+	margin: 0;
+	padding: 5px;
+	color: #fff;
+}
+
+.status-code.success {
+	background: #00C96B;
+}
+
+.status-code.error {
+	background: #D90000;
+}

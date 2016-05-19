@@ -26,10 +26,12 @@ module.exports = React.createClass({
 
   render() {
     let responseHeaders = _.get(this.props.response, 'headers');
+    let responseStatus = _.get(this.props.response, 'statusCode');
     let responseBody = _.get(this.props.response, 'body');
 
     return (
       <div className={(_.isEmpty(this.props.response) ? 'hidden' : '')}>
+        <p className={"status-code " + (responseStatus < 400 ? 'success' : 'error')}>Status: {responseStatus}</p>
         <Tabs>
             <Tab title="Body">
               {
