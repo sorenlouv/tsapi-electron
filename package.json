@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "./node_modules/electron-prebuilt-compile/lib/cli.js .",
     "package": "electron-packager ./ --platform=darwin --arch=x64 --out=./sqren-build --ignore=sqren-build --overwrite"
   },
   "repository": {
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "electron-packager": "^7.0.1",
-    "electron-prebuilt": "^1.0.0"
+    "electron-prebuilt": "^1.0.0",
+    "electron-prebuilt-compile": "^1.1.1"
   }
 }
